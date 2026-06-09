@@ -55,7 +55,7 @@ print(df.shape)
 print(df.columns)
 df.head()
 
-El dataset cargado contiene aproximadamente 22.000 registros y 9 columnas.
+El dataset cargado contiene 21.214 registros y 9 columnas. 
 5. Selección del texto
 texts = df["Review Text"].dropna().astype(str)
 
@@ -69,7 +69,17 @@ doc = nlp(sample_text)
 tokens = [token.text for token in doc]
 
 Esta etapa permite transformar texto libre en elementos individuales que posteriormente podrán ser analizados.
-7. Eliminación de Stopwords Estándar
+7. Tokenización Personalizada
+Se implementó una tokenización personalizada utilizando la clase Tokenizer de spaCy con el objetivo de comparar su comportamiento respecto de la tokenización estándar.
+from spacy.tokenizer import Tokenizer
+custom_tokenizer = Tokenizer(nlp.vocab)
+custom_doc = custom_tokenizer(sample_text)
+tokens_custom = [
+   token.text
+   for token in custom_doc
+]
+En este conjunto de datos los resultados obtenidos fueron similares a los de la tokenización estándar debido a que las reseñas presentan una estructura relativamente simple. Sin embargo, la implementación permite adaptar futuras reglas de segmentación para dominios específicos, mejorando la calidad del preprocesamiento y demostrando la flexibilidad de spaCy para diferentes contextos de aplicación.
+8. Eliminación de Stopwords Estándar
 Se aplicó la lista de stopwords incorporada en spaCy.
 def remove_stopwords(text):
 
@@ -82,14 +92,8 @@ def remove_stopwords(text):
         and token.is_alpha
     ]
 
-La utilización de la lista estándar permite eliminar automáticamente palabras frecuentes del idioma inglés como:
-the
-and
-to
-a
-it
-entre otras.
-8. Personalización de Stopwords
+La utilización de la lista estándar permite eliminar automáticamente palabras funcionales del idioma inglés que presentan alta frecuencia y bajo contenido semántico. 
+9. Personalización de Stopwords
 Además de la lista estándar, se incorporó una lista personalizada.
 custom_stopwords = {
     "amazon",
@@ -99,7 +103,7 @@ custom_stopwords = {
 
 La decisión se fundamenta en que estas palabras aparecen repetidamente en las reseñas debido al contexto del dataset y no aportan información discriminante para comprender la opinión de los usuarios.
 Por ejemplo, la palabra "amazon" se encuentra presente tanto en reseñas positivas como negativas, por lo que su capacidad explicativa resulta limitada.
-9. Aplicación de Stopwords Personalizadas
+10. Aplicación de Stopwords Personalizadas
 def remove_custom_stopwords(text):
 
     doc = nlp(text)
@@ -112,25 +116,60 @@ def remove_custom_stopwords(text):
         and token.text.lower() not in custom_stopwords
     ]
 
-10. Comparación de Frecuencias
-Se realizó una comparación de frecuencias antes y después del proceso de limpieza con el objetivo de evaluar el impacto de la eliminación de stopwords sobre la representación textual del corpus. Esta comparación permite identificar qué términos dominan el vocabulario antes del preprocesamiento y cuáles emergen como conceptos relevantes una vez reducido el ruido lingüístico. 
-11. Visualización
-Se construyó un gráfico de barras para visualizar las palabras más frecuentes luego de la eliminación de stopwords.
-La visualización permitió identificar rápidamente los conceptos predominantes dentro del conjunto de reseñas.
+11. Comparación de Frecuencias
+Se realizó una comparación de frecuencias antes y después del proceso de limpieza con el objetivo de evaluar el impacto de la eliminación de stopwords sobre la representación textual del corpus.
+Para ello se procesó la totalidad del dataset, compuesto por 21.214 reseñas, obteniendo las palabras más frecuentes antes y después de aplicar las técnicas de limpieza implementadas.
+La comparación permite identificar qué términos dominan el vocabulario antes del preprocesamiento y cuáles emergen como conceptos relevantes una vez reducido el ruido lingüístico.
+
+12. Visualización
+Se construyó un gráfico de barras utilizando la biblioteca Seaborn para visualizar las palabras más frecuentes luego de la eliminación de stopwords.
+plt.figure(figsize=(10,5))
+sns.barplot(
+   data=after_df,
+   x="Frequency",
+   y="Word"
+)
+plt.title(
+   "Palabras más frecuentes después de eliminar stopwords"
+)
+plt.show()
+La visualización facilita la interpretación de los resultados obtenidos y permite identificar rápidamente los conceptos predominantes dentro del conjunto de reseñas analizado.
+
 
 
 
 Comparación de Resultados
 Palabras más frecuentes antes de la limpieza
-
 Análisis
-Antes de la limpieza predominan términos muy frecuentes del idioma inglés como "the", "i", "to", "and" y "for". Estas palabras aparecen constantemente en las reseñas, pero aportan poco valor semántico para comprender los temas tratados por los usuarios.
+Antes de aplicar técnicas de limpieza textual, las palabras más frecuentes corresponden principalmente a artículos, pronombres y conectores propios del idioma inglés.
+Entre los términos predominantes aparecen palabras como "i", "the", "to", "and" y "a", las cuales presentan una frecuencia muy elevada debido a su uso habitual dentro de la estructura gramatical del idioma.
+La presencia dominante de estas palabras evidencia una elevada proporción de ruido lingüístico dentro del corpus, dificultando la identificación de los temas realmente relevantes presentes en las reseñas.
+Si bien estos términos son necesarios para la construcción de las oraciones, aportan escasa información semántica para comprender los aspectos específicos de la experiencia de compra relatada por los usuarios.
 
 Palabras más frecuentes después de la limpieza
-
 Análisis de Resultados
-Se observa que los términos predominantes luego de la limpieza se relacionan principalmente con aspectos operativos de la experiencia de compra. Palabras como "customer", "service", "delivery" y "refund" indican que una parte significativa de las reseñas se concentra en procesos de atención al cliente, logística y gestión de devoluciones. Esto sugiere que estos factores constituyen elementos clave en la percepción del servicio por parte de los usuarios.
-Desde una perspectiva empresarial, la identificación temprana de estos conceptos permitiría priorizar mejoras en los procesos con mayor impacto sobre la satisfacción del cliente. Asimismo, estos resultados podrían utilizarse como insumo para futuros modelos de clasificación automática de reclamos o análisis de sentimiento.
+Luego de aplicar la eliminación de stopwords estándar de spaCy y las stopwords personalizadas definidas para el dominio de Amazon, las palabras más frecuentes obtenidas fueron:
+customer
+service
+delivery
+order
+time
+prime
+account
+refund
+items
+day
+La limpieza permitió eliminar términos gramaticales de alta frecuencia y resaltar conceptos directamente vinculados con la experiencia de compra reportada por los usuarios.
+Se observa una fuerte presencia de términos asociados a atención al cliente, entregas, gestión de pedidos, tiempos de respuesta, cuentas de usuario y devoluciones. Esto indica que una parte importante de las opiniones expresadas por los usuarios se concentra en aspectos operativos y de servicio vinculados al funcionamiento de la plataforma.
+Desde una perspectiva empresarial, estos resultados permiten identificar áreas críticas que impactan directamente sobre la satisfacción del cliente. Asimismo, la información obtenida podría utilizarse como insumo para futuros modelos de análisis de sentimiento, clasificación automática de reclamos o detección temprana de problemas operativos.
+La comparación con las frecuencias obtenidas antes de la limpieza demuestra que el preprocesamiento mejora significativamente la capacidad de interpretar los temas predominantes dentro del corpus.
+
+Comparación entre Técnicas Aplicadas
+La tokenización estándar permitió segmentar correctamente las reseñas en palabras y signos de puntuación, constituyendo el punto de partida para las etapas posteriores del procesamiento de texto.
+Posteriormente, la tokenización personalizada fue implementada utilizando la clase Tokenizer de spaCy. Aunque los resultados obtenidos fueron similares a los de la tokenización estándar debido a las características del dataset analizado, esta técnica demuestra la posibilidad de adaptar el proceso de segmentación a dominios específicos mediante reglas personalizadas.
+En una segunda etapa se aplicó la eliminación de stopwords estándar incorporada en spaCy. Esta técnica permitió eliminar artículos, pronombres, preposiciones y otras palabras funcionales de alta frecuencia que aportan poco contenido semántico al análisis.
+Finalmente, se incorporó una lista de stopwords personalizadas compuesta por los términos "amazon", "product" e "item". Estas palabras aparecen con elevada frecuencia debido al contexto propio del dataset y no contribuyen significativamente a diferenciar opiniones o problemáticas específicas.
+Los resultados obtenidos muestran que cada técnica aplicada aporta una mejora incremental sobre la calidad del texto procesado. La combinación de tokenización, eliminación de stopwords estándar y personalización de stopwords permitió obtener una representación más limpia, interpretable y útil para futuras tareas de análisis de texto y aprendizaje automático.
 
 Impacto del Preprocesamiento en Ciencia de Datos
 La calidad del preprocesamiento tiene un impacto directo sobre el desempeño de los modelos de Machine Learning aplicados a texto.
@@ -146,9 +185,10 @@ Por esta razón, la selección de stopwords debe responder a los objetivos espec
 La personalización realizada en este trabajo constituye un ejemplo de adaptación al dominio, eliminando términos frecuentes asociados a la plataforma de comercio electrónico analizada para mejorar la calidad interpretativa de los resultados.
 
 Conclusión
-En este trabajo se implementó un proceso completo de limpieza de texto utilizando spaCy sobre un conjunto real de reseñas de Amazon.
-La tokenización permitió segmentar adecuadamente los documentos, mientras que la eliminación de stopwords estándar y personalizadas redujo significativamente el ruido presente en los datos.
-La comparación de frecuencias antes y después del preprocesamiento demostró que la limpieza facilita la identificación de conceptos relevantes vinculados con la experiencia de los usuarios, tales como servicio al cliente, entregas y devoluciones.
-Los resultados obtenidos confirman que la eliminación de stopwords constituye una etapa esencial dentro de cualquier pipeline de procesamiento de lenguaje natural, mejorando tanto la interpretabilidad de los datos como la calidad potencial de futuros modelos predictivos.
-Como líneas futuras de trabajo podrían incorporarse técnicas adicionales de lematización, análisis de sentimientos, embeddings y modelos supervisados de clasificación para profundizar el estudio de las opiniones de los clientes.
-
+En este trabajo se implementó un proceso completo de limpieza y preprocesamiento de texto utilizando la biblioteca spaCy sobre un conjunto real de reseñas de Amazon.
+El análisis fue realizado sobre la totalidad del dataset, compuesto por 21.214 registros y 9 variables, permitiendo obtener resultados representativos del comportamiento general de las reseñas analizadas.
+La tokenización permitió segmentar adecuadamente los documentos, mientras que la implementación de una tokenización personalizada demostró la flexibilidad de spaCy para adaptarse a diferentes dominios de aplicación.
+Posteriormente, la eliminación de stopwords estándar y personalizadas redujo significativamente el ruido presente en los datos, favoreciendo la identificación de conceptos relevantes dentro del corpus.
+La comparación de frecuencias antes y después del preprocesamiento evidenció que la limpieza textual permite destacar términos estrechamente relacionados con la experiencia de los usuarios, tales como atención al cliente, entregas, gestión de pedidos y devoluciones.
+Los resultados obtenidos confirman que el preprocesamiento constituye una etapa fundamental dentro de cualquier proyecto de Procesamiento de Lenguaje Natural, ya que mejora la calidad de los datos, facilita la interpretación de los resultados y contribuye potencialmente a mejorar el desempeño de futuros modelos predictivos.
+Como líneas futuras de trabajo podrían incorporarse técnicas complementarias como lematización, análisis de sentimiento, representación mediante embeddings y modelos supervisados de clasificación para profundizar el estudio de las opiniones de los clientes.

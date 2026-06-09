@@ -70,15 +70,8 @@ tokens = [token.text for token in doc]
 
 Esta etapa permite transformar texto libre en elementos individuales que posteriormente podrán ser analizados.
 7. Tokenización Personalizada
-Se implementó una tokenización personalizada utilizando la clase Tokenizer de spaCy con el objetivo de comparar su comportamiento respecto de la tokenización estándar.
-from spacy.tokenizer import Tokenizer
-custom_tokenizer = Tokenizer(nlp.vocab)
-custom_doc = custom_tokenizer(sample_text)
-tokens_custom = [
-   token.text
-   for token in custom_doc
-]
-En este conjunto de datos los resultados obtenidos fueron similares a los de la tokenización estándar debido a que las reseñas presentan una estructura relativamente simple. Sin embargo, la implementación permite adaptar futuras reglas de segmentación para dominios específicos, mejorando la calidad del preprocesamiento y demostrando la flexibilidad de spaCy para diferentes contextos de aplicación.
+Se realizó una prueba adicional de tokenización sobre una expresión compuesta relacionada con Amazon Prime para observar el comportamiento del tokenizador de spaCy. Si bien no fue necesario modificar las reglas internas del tokenizer para este ejercicio, la prueba permitió verificar la correcta segmentación de términos presentes en el dominio analizado. 
+
 8. Eliminación de Stopwords Estándar
 Se aplicó la lista de stopwords incorporada en spaCy.
 def remove_stopwords(text):
@@ -179,10 +172,9 @@ Asimismo, la reducción del vocabulario disminuye el consumo de memoria y aceler
 Por este motivo, la limpieza de texto constituye una práctica estándar dentro de los proyectos profesionales de NLP.
 
 Reflexión Crítica
-Si bien la eliminación de stopwords genera beneficios evidentes, no existe una estrategia universal aplicable a todos los problemas.
-En determinados escenarios algunas palabras consideradas stopwords pueden aportar información relevante. Por ejemplo, términos relacionados con negaciones como "not" pueden modificar completamente el significado de una frase y afectar significativamente un análisis de sentimientos.
-Por esta razón, la selección de stopwords debe responder a los objetivos específicos del proyecto y validarse empíricamente mediante experimentación.
-La personalización realizada en este trabajo constituye un ejemplo de adaptación al dominio, eliminando términos frecuentes asociados a la plataforma de comercio electrónico analizada para mejorar la calidad interpretativa de los resultados.
+La limpieza de texto produjo una reducción del vocabulario de aproximadamente 1.15%, eliminando palabras irrelevantes y términos muy frecuentes que aportaban poco valor analítico.
+Antes de la limpieza predominaban artículos, pronombres y conectores como "the", "to", "and" o "of", además de términos generales como "amazon". Luego de aplicar stopwords estándar y personalizadas, emergieron conceptos más representativos del contenido de las reseñas, tales como "customer", "service", "delivery", "account" y "refund".
+Estos resultados permiten identificar con mayor claridad los temas principales abordados por los usuarios, especialmente aspectos relacionados con atención al cliente, entregas y devoluciones. Desde una perspectiva de negocio, este tipo de procesamiento facilita la detección de problemáticas recurrentes y constituye una etapa fundamental para futuros análisis de sentimiento o modelos de clasificación automática de comentarios.
 
 Conclusión
 En este trabajo se implementó un proceso completo de limpieza y preprocesamiento de texto utilizando la biblioteca spaCy sobre un conjunto real de reseñas de Amazon.
@@ -192,3 +184,5 @@ Posteriormente, la eliminación de stopwords estándar y personalizadas redujo s
 La comparación de frecuencias antes y después del preprocesamiento evidenció que la limpieza textual permite destacar términos estrechamente relacionados con la experiencia de los usuarios, tales como atención al cliente, entregas, gestión de pedidos y devoluciones.
 Los resultados obtenidos confirman que el preprocesamiento constituye una etapa fundamental dentro de cualquier proyecto de Procesamiento de Lenguaje Natural, ya que mejora la calidad de los datos, facilita la interpretación de los resultados y contribuye potencialmente a mejorar el desempeño de futuros modelos predictivos.
 Como líneas futuras de trabajo podrían incorporarse técnicas complementarias como lematización, análisis de sentimiento, representación mediante embeddings y modelos supervisados de clasificación para profundizar el estudio de las opiniones de los clientes.
+
+
